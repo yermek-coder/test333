@@ -2,12 +2,13 @@
     <div>
         <h3 class="text-center my-4">{{ title }}</h3>
 
-        <div class="overflow-auto">
+        <div class="overflow-x-auto">
             <div
-                class="chart d-flex gap-3"
+                class="chart d-flex gap-3 justify-content-center"
                 :style="{
-                    '--max': Math.abs(max),
-                    '--min': Math.abs(min),
+                    '--amplitude': amplitude,
+                    '--max': max,
+                    '--min': min,
                 }"
             >
                 <div
@@ -17,16 +18,12 @@
                     :style="{ '--quantity': col.quantity }"
                     :class="{ negative: col.quantity < 0 }"
                 >
-                    <div class="chart-col-inner w-100 position-absolute"></div>
-                </div>
-            </div>
-            <div class="chart-names d-flex gap-3 mt-3">
-                <div
-                    v-for="col in data"
-                    :key="col.name"
-                    class="d-flex align-items-center justify-content-end"
-                >
-                    <div>{{ col.name }}</div>
+                    <div class="chart-col-bar w-100 position-absolute"></div>
+                    <div
+                        class="chart-col-name w-100 h-100 d-flex align-items-center justify-content-end position-absolute border-bottom border-black pb-2"
+                    >
+                        <div class="chart-col-name-inner">{{ col.name }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -42,8 +39,10 @@
             acc.max = Math.max(acc.max, val.quantity);
             return acc;
         },
-        { min: Infinity, max: -Infinity }
+        { min: 0, max: 0 }
     );
+
+    const amplitude = Math.abs(min - max);
 
     /**
      * "Допустимо передавать из контроллера в шаблон только данные: значения quantity и name, все расчеты по разметке должен делать css"
@@ -53,36 +52,30 @@
 
 <style>
     .chart {
-        height: 60vh;
+        height: 50rem;
         padding-top: 12rem;
+        padding-bottom: 20rem;
     }
 
     .chart-col {
-        min-width: calc(100% / 12);
+        min-width: 4rem;
     }
 
-    .chart-col-inner {
-        bottom: 50%;
+    .chart-col-bar {
+        bottom: calc(((var(--min) * -1 * 100) / var(--amplitude)) * 1%);
+        height: calc(((var(--quantity) * 100) / var(--amplitude)) * 1%);
         top: initial;
-        height: calc(((var(--quantity) * 50) / var(--max)) * 1%);
         background-color: var(--bs-danger);
     }
 
-    .chart-col.negative .chart-col-inner {
-        top: 50%;
+    .chart-col.negative .chart-col-bar {
+        top: calc(((var(--max) * 100) / var(--amplitude)) * 1%);
         bottom: initial;
-        height: calc(((var(--quantity) * -1 * 50) / var(--min)) * 1%);
+        height: calc(((var(--quantity) * -1 * 100) / var(--amplitude)) * 1%);
         background-color: var(--bs-success);
     }
 
-    .chart-names > div {
-        min-width: calc(100% / 12);
-        writing-mode: vertical-rl;
-        text-orientation: sideways;
-        transform: rotate(-180deg);
-    }
-
-    .chart-col-inner::before {
+    .chart-col-bar::before {
         counter-reset: variable var(--quantity);
         content: counter(variable);
 
@@ -93,5 +86,17 @@
         position: absolute;
         bottom: calc(100% + 1rem);
         left: 50%;
+    }
+
+    .chart-col-name {
+        top: calc(100% + 1rem);
+        writing-mode: vertical-rl;
+        text-orientation: sideways;
+        transform: rotate(-180deg);
+    }
+
+    .chart-col-name-inner {
+        transform: rotate(10deg);
+        transform-origin: bottom;
     }
 </style>
